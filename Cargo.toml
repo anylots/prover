@@ -8,18 +8,16 @@ opt-level = 3
 lto = "thin"
 
 [patch."https://github.com/privacy-scaling-explorations/halo2.git"]
-halo2_proofs = { git = "https://github.com/pinkiebell/halo2.git", tag = "v2023_02_02", package = "halo2_proofs" }
-
+halo2_proofs = { git = "https://github.com/scroll-tech/halo2.git", branch = "v0.4" }
+[patch."https://github.com/privacy-scaling-explorations/poseidon.git"]
+poseidon = { git = "https://github.com/scroll-tech/poseidon.git", branch = "scroll-dev-0220" }
 [patch."https://github.com/privacy-scaling-explorations/halo2curves.git"]
-halo2_curves = { git = "https://github.com/pinkiebell/halo2curves.git", tag = "0.3.1", package = "halo2curves" }
-
+halo2curves = { git = "https://github.com/scroll-tech/halo2curves.git", branch = "0.3.1-derive-serde" }
 [patch."https://github.com/privacy-scaling-explorations/halo2wrong.git"]
-halo2_wrong_ecc = { git = "https://github.com/pinkiebell/halo2wrong.git", tag = "v2023_02_02", package = "ecc" }
-halo2_wrong_integer = { git = "https://github.com/pinkiebell/halo2wrong.git", tag = "v2023_02_02", package = "integer" }
-halo2_wrong_maingate = { git = "https://github.com/pinkiebell/halo2wrong.git", tag = "v2023_02_02", package = "maingate" }
+maingate = { git = "https://github.com/scroll-tech/halo2wrong", branch = "halo2-ecc-snark-verifier-0323" }
 
-#[patch."https://github.com/privacy-scaling-explorations/zkevm-circuits.git"]
-#bus-mapping = { git = "https://github.com/pinkiebell/zkevm-circuits.git", branch = "zkevm-chain" }
-#eth-types = { git = "https://github.com/pinkiebell/zkevm-circuits.git", branch = "zkevm-chain" }
-#zkevm-circuits = { git = "https://github.com/pinkiebell/zkevm-circuits.git", branch = "zkevm-chain" }
-#mock = { git = "https://github.com/pinkiebell/zkevm-circuits.git", branch = "zkevm-chain" }
+#[patch."https://github.com/scroll-tech/zkevm-circuits.git"]
+bus-mapping = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop" }
+eth-types = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop" }
+zkevm-circuits = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop" }
+mock = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop" }

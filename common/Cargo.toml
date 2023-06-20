@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-eth-types = { git = "https://github.com/privacy-scaling-explorations/zkevm-circuits.git", rev = "d4b4b81c8b57afcde8f24adee2abcef1cd10cbad", features = ["warn-unimplemented"] }
+eth-types = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop", features = ["warn-unimplemented"] }
 hyper = { version = "0.14.16", features = ["server"] }
 log = "0.4.14"
 serde = { version = "1.0.136", features = ["derive"] }
