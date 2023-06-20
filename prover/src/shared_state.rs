@@ -2,13 +2,11 @@ use crate::circuit_witness::CircuitWitness;
 use crate::circuits::*;
 use crate::utils::collect_instance;
 use crate::utils::fixed_rng;
-use crate::utils::gen_num_instance;
 use crate::utils::gen_proof;
 use crate::Fr;
 use crate::G1Affine;
 use crate::ProverKey;
 use crate::ProverParams;
-use halo2_proofs::circuit::Value;
 use halo2_proofs::dev::MockProver;
 use halo2_proofs::plonk::Circuit;
 use halo2_proofs::plonk::{keygen_pk, keygen_vk};
@@ -20,16 +18,11 @@ use snark_verifier::system::halo2::transcript::evm::EvmTranscript;
 use std::collections::HashMap;
 use std::fmt::Write;
 use std::fs::File;
-use std::io::Write as IoWrite;
 use std::net::ToSocketAddrs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::Mutex;
-use zkevm_circuits::root_circuit::compile;
-use zkevm_circuits::root_circuit::Config as PlonkConfig;
-use zkevm_circuits::root_circuit::PoseidonTranscript;
-use zkevm_circuits::root_circuit::RootCircuit;
 use zkevm_circuits::util::SubCircuit;
 use zkevm_common::json_rpc::jsonrpc_request_client;
 use zkevm_common::prover::*;
@@ -86,7 +79,7 @@ async fn compute_proof<C: Circuit<Fr> + Clone + SubCircuit<Fr>>(
         ),
         ..Default::default()
     };
-    let mut aggregation_proof = ProofResult {
+    let aggregation_proof = ProofResult {
         label: format!(
             "{}-{}-a",
             task_options.circuit, circuit_config.block_gas_limit
@@ -122,102 +115,7 @@ async fn compute_proof<C: Circuit<Fr> + Clone + SubCircuit<Fr>>(
         circuit_proof.instance = collect_instance(&circuit_instance);
 
         if task_options.aggregate {
-            let proof = gen_proof::<_, _, PoseidonTranscript<_, _>, PoseidonTranscript<_, _>, _>(
-                &param,
-                &pk,
-                circuit,
-                circuit_instance.clone(),
-                fixed_rng(),
-                task_options.mock_feedback,
-                task_options.verify_proof,
-                &mut circuit_proof.aux,
-            );
-            circuit_proof.proof = proof.clone().into();
-
-            if std::env::var("PROVERD_DUMP").is_ok() {
-                File::create(format!(
-                    "proof-{}-{:?}",
-                    task_options.circuit, &circuit_config
-                ))
-                .unwrap()
-                .write_all(&proof)
-                .unwrap();
-            }
-
-            // aggregate the circuit proof
-            let protocol = {
-                let time_started = Instant::now();
-                let v = compile(
-                    param.as_ref(),
-                    pk.get_vk(),
-                    PlonkConfig::kzg().with_num_instance(gen_num_instance(&circuit_instance)),
-                );
-                aggregation_proof.aux.protocol =
-                    Instant::now().duration_since(time_started).as_millis() as u32;
-                v
-            };
-
-            let (agg_params, agg_param_path) =
-                get_or_gen_param(task_options, circuit_config.min_k_aggregation);
-            aggregation_proof.k = agg_params.k() as u8;
-
-            let agg_circuit = {
-                let time_started = Instant::now();
-                let v = RootCircuit::new(
-                    &agg_params,
-                    &protocol,
-                    Value::known(&circuit_instance),
-                    Value::known(&proof),
-                )
-                .expect("RootCircuit::new");
-                aggregation_proof.aux.circuit =
-                    Instant::now().duration_since(time_started).as_millis() as u32;
-                v
-            };
-
-            let agg_pk = {
-                let cache_key = format!(
-                    "{}{}{:?}ag",
-                    &task_options.circuit, &agg_param_path, &circuit_config
-                );
-                shared_state
-                    .gen_pk(
-                        &cache_key,
-                        &agg_params,
-                        &agg_circuit,
-                        &mut aggregation_proof.aux,
-                    )
-                    .await
-                    .map_err(|e| e.to_string())?
-            };
-            let agg_instance = agg_circuit.instance().to_vec();
-            aggregation_proof.instance = collect_instance(&agg_instance);
-            let proof = gen_proof::<
-                _,
-                _,
-                EvmTranscript<G1Affine, _, _, _>,
-                EvmTranscript<G1Affine, _, _, _>,
-                _,
-            >(
-                agg_params.as_ref(),
-                &agg_pk,
-                agg_circuit,
-                agg_instance,
-                fixed_rng(),
-                task_options.mock_feedback,
-                task_options.verify_proof,
-                &mut aggregation_proof.aux,
-            );
-            if std::env::var("PROVERD_DUMP").is_ok() {
-                File::create(format!(
-                    "proof-{}-agg--{:?}",
-                    task_options.circuit, &circuit_config
-                ))
-                .unwrap()
-                .write_all(&proof)
-                .unwrap();
-            }
-            aggregation_proof.proof = proof.into();
+            
         } else {
             let proof = gen_proof::<
                 _,

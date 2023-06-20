@@ -130,11 +130,14 @@ pub struct CircuitConfig {
     pub max_bytecode: usize,
     pub max_rws: usize,
     pub max_copy_rows: usize,
+    pub max_inner_blocks: usize,
     pub max_exp_steps: usize,
     pub min_k: usize,
     pub pad_to: usize,
     pub min_k_aggregation: usize,
     pub keccak_padding: usize,
+    pub max_mpt_rows: usize,
+    pub max_rlp_rows: usize,
 }
 
 fn default_bool() -> bool {

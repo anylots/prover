@@ -22,7 +22,7 @@ use rand::SeedableRng;
 use std::clone::Clone;
 use std::io::Cursor;
 use std::time::Instant;
-use zkevm_circuits::tx_circuit::PrimeField;
+use halo2_base::utils::PrimeField;
 use zkevm_common::prover::ProofResultInstrumentation;
 
 /// Returns [<len>, ...] of `instance`

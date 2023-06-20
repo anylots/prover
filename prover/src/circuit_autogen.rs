@@ -10,11 +10,14 @@ macro_rules! match_circuit_params {
                     max_bytecode: 24634,
                     max_rws: 476052,
                     max_copy_rows: 896002,
+                    max_inner_blocks: 100,
                     max_exp_steps: 4200,
                     min_k: 20,
                     pad_to: 476052,
                     min_k_aggregation: 26,
                     keccak_padding: 336000,
+                    max_mpt_rows: 100,
+                    max_rlp_rows: 100,
                 };
                 $on_match
             }
@@ -26,11 +29,14 @@ macro_rules! match_circuit_params {
                     max_bytecode: 139500,
                     max_rws: 3161966,
                     max_copy_rows: 5952002,
+                    max_inner_blocks: 100,
                     max_exp_steps: 27900,
                     min_k: 23,
                     pad_to: 3161966,
                     min_k_aggregation: 26,
                     keccak_padding: 1600000,
+                    max_mpt_rows: 100,
+                    max_rlp_rows: 100,
                 };
                 $on_match
             }
