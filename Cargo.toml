@@ -17,7 +17,7 @@ halo2curves = { git = "https://github.com/scroll-tech/halo2curves.git", branch =
 maingate = { git = "https://github.com/scroll-tech/halo2wrong", branch = "halo2-ecc-snark-verifier-0323" }
 
 #[patch."https://github.com/scroll-tech/zkevm-circuits.git"]
-bus-mapping = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop" }
-eth-types = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop" }
-zkevm-circuits = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop" }
-mock = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "develop" }
+bus-mapping = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "v0.3" }
+eth-types = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "v0.3" }
+zkevm-circuits = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "v0.3" }
+mock = { git = "https://github.com/scroll-tech/zkevm-circuits.git", branch = "v0.3" }

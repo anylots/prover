@@ -1,16 +1,17 @@
-use crate::circuit_witness::CircuitWitness;
-use crate::Fr;
+use crate::{circuit_witness::CircuitWitness, Fr, MOCK_MAX_INNER_BLOCKS, MOCK_RANDOMNESS};
 use rand::Rng;
-use zkevm_circuits::bytecode_circuit::circuit::BytecodeCircuit;
-use zkevm_circuits::copy_circuit::CopyCircuit;
-use zkevm_circuits::evm_circuit::EvmCircuit;
-use zkevm_circuits::exp_circuit::ExpCircuit;
-use zkevm_circuits::keccak_circuit::KeccakCircuit;
-use zkevm_circuits::pi_circuit::PiCircuit;
-use zkevm_circuits::state_circuit::StateCircuit;
-use zkevm_circuits::super_circuit::SuperCircuit;
-use zkevm_circuits::tx_circuit::TxCircuit;
-use zkevm_circuits::util::SubCircuit;
+use zkevm_circuits::{
+    bytecode_circuit::circuit::BytecodeCircuit,
+    copy_circuit::CopyCircuit,
+    evm_circuit::EvmCircuit,
+    exp_circuit::ExpCircuit,
+    keccak_circuit::KeccakCircuit,
+    pi_circuit::{PiCircuit, PiTestCircuit},
+    state_circuit::StateCircuit,
+    super_circuit::SuperCircuit,
+    tx_circuit::TxCircuit,
+    util::SubCircuit,
+};
 
 /// Returns a instance of the `SuperCircuit`.
 pub fn gen_super_circuit<
@@ -22,13 +23,14 @@ pub fn gen_super_circuit<
 >(
     witness: &CircuitWitness,
     mut _rng: RNG,
-) -> Result<SuperCircuit<Fr>, String> {
+) -> Result<SuperCircuit<Fr, MAX_TXS, MAX_CALLDATA, MOCK_MAX_INNER_BLOCKS, MOCK_RANDOMNESS>, String>
+{
     let block = witness.evm_witness();
-    let circuit = SuperCircuit::new_from_block(&block);
+    let circuit = SuperCircuit::<_, MAX_TXS, MAX_CALLDATA,MOCK_MAX_INNER_BLOCKS, MOCK_RANDOMNESS>::new_from_block(&block);
     Ok(circuit)
 }
 
-/// Returns a instance of the `PiCircuit`.
+/// Returns a instance of the `PiTestCircuit`.
 pub fn gen_pi_circuit<
     const MAX_TXS: usize,
     const MAX_CALLDATA: usize,
@@ -38,9 +40,11 @@ pub fn gen_pi_circuit<
 >(
     witness: &CircuitWitness,
     mut _rng: RNG,
-) -> Result<PiCircuit<Fr>, String> {
+) -> Result<PiTestCircuit<Fr, MAX_TXS, MOCK_MAX_INNER_BLOCKS, MAX_CALLDATA>, String> {
     let block = witness.evm_witness();
-    let circuit = PiCircuit::new_from_block(&block);
+    let circuit = PiTestCircuit::<Fr, MAX_TXS, MOCK_MAX_INNER_BLOCKS, MAX_CALLDATA>(
+        PiCircuit::new_from_block(&block),
+    );
 
     Ok(circuit)
 }

@@ -39,6 +39,7 @@ impl CircuitWitness {
             max_bytecode: circuit_config.max_bytecode,
             max_rws: circuit_config.max_rws,
             max_copy_rows: circuit_config.max_copy_rows,
+            max_inner_blocks: circuit_config.max_inner_blocks,
             max_exp_steps: circuit_config.max_exp_steps,
             max_evm_rows: circuit_config.pad_to,
             max_keccak_rows: circuit_config.keccak_padding,
@@ -88,6 +89,7 @@ impl CircuitWitness {
             max_bytecode: circuit_config.max_bytecode,
             max_rws: circuit_config.max_rws,
             max_copy_rows: circuit_config.max_copy_rows,
+            max_inner_blocks: circuit_config.max_inner_blocks,
             max_exp_steps: circuit_config.max_exp_steps,
             max_evm_rows: circuit_config.pad_to,
             max_keccak_rows: circuit_config.keccak_padding,
@@ -126,30 +128,5 @@ impl CircuitWitness {
             .collect();
 
         txs
-    }
-
-    pub fn public_data(&self) -> PublicData {
-        let chain_id = self.block.chain_id;
-        let eth_block = self.eth_block.clone();
-        let history_hashes = self.block.history_hashes.clone();
-        let block_constants = geth_types::BlockConstants {
-            coinbase: eth_block.author.expect("coinbase"),
-            timestamp: eth_block.timestamp,
-            number: eth_block.number.expect("number"),
-            difficulty: eth_block.difficulty,
-            gas_limit: eth_block.gas_limit,
-            base_fee: eth_block.base_fee_per_gas.unwrap_or_default(),
-        };
-        let prev_state_root = H256::from(self.block.prev_state_root.to_be_bytes());
-
-        PublicData {
-            chain_id,
-            history_hashes,
-            block_constants,
-            prev_state_root,
-            transactions: eth_block.transactions.clone(),
-            // block_hash: eth_block.hash.unwrap_or_default(),
-            state_root: eth_block.state_root,
-        }
     }
 }

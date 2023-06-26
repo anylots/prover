@@ -504,14 +504,12 @@ impl SharedState {
                         ));
                     }
                 );
-
                 let res = Proofs {
                     config,
                     circuit: circuit_proof,
                     aggregation: aggregation_proof,
                     gas: witness.gas_used(),
                 };
-
                 Ok(res)
             })
             .await

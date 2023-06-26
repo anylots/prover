@@ -130,6 +130,7 @@ pub struct CircuitConfig {
     pub max_bytecode: usize,
     pub max_rws: usize,
     pub max_copy_rows: usize,
+    pub max_inner_blocks: usize,
     pub max_exp_steps: usize,
     pub min_k: usize,
     pub pad_to: usize,
