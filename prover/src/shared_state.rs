@@ -1,38 +1,35 @@
-use crate::circuit_witness::CircuitWitness;
-use crate::circuits::*;
-use crate::utils::collect_instance;
-use crate::utils::fixed_rng;
-use crate::utils::gen_num_instance;
-use crate::utils::gen_proof;
-use crate::Fr;
-use crate::G1Affine;
-use crate::ProverKey;
-use crate::ProverParams;
-use halo2_proofs::circuit::Value;
-use halo2_proofs::dev::MockProver;
-use halo2_proofs::plonk::Circuit;
-use halo2_proofs::plonk::{keygen_pk, keygen_vk};
-use halo2_proofs::poly::commitment::Params;
-use halo2_proofs::SerdeFormat;
+use crate::{
+    circuit_witness::CircuitWitness,
+    circuits::*,
+    utils::{collect_instance, fixed_rng, gen_num_instance, gen_proof},
+    Fr, G1Affine, ProverKey, ProverParams,
+};
+use halo2_proofs::{
+    circuit::Value,
+    dev::MockProver,
+    plonk::{keygen_pk, keygen_vk, Circuit},
+    poly::commitment::Params,
+    SerdeFormat,
+};
 use hyper::Uri;
 use rand::{thread_rng, Rng};
 use snark_verifier::system::halo2::transcript::evm::EvmTranscript;
-use std::collections::HashMap;
-use std::fmt::Write;
-use std::fs::File;
-use std::io::Write as IoWrite;
-use std::net::ToSocketAddrs;
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
-use std::time::Instant;
+use std::{
+    collections::HashMap,
+    fmt::Write,
+    fs::File,
+    io::Write as IoWrite,
+    net::ToSocketAddrs,
+    path::{Path, PathBuf},
+    sync::Arc,
+    time::Instant,
+};
 use tokio::sync::Mutex;
-use zkevm_circuits::root_circuit::compile;
-use zkevm_circuits::root_circuit::Config as PlonkConfig;
-use zkevm_circuits::root_circuit::PoseidonTranscript;
-use zkevm_circuits::root_circuit::RootCircuit;
-use zkevm_circuits::util::SubCircuit;
-use zkevm_common::json_rpc::jsonrpc_request_client;
-use zkevm_common::prover::*;
+use zkevm_circuits::{
+    root_circuit::{compile, Config as PlonkConfig, PoseidonTranscript, RootCircuit},
+    util::SubCircuit,
+};
+use zkevm_common::{json_rpc::jsonrpc_request_client, prover::*};
 
 fn get_param_path(path: &String, k: usize) -> PathBuf {
     // try to automatically choose a file if the path is a folder.
@@ -417,14 +414,14 @@ impl SharedState {
         let task_result: Result<Result<Proofs, String>, tokio::task::JoinError> = {
             let task_options_copy = task_options.clone();
             let self_copy = self.clone();
-            
+
+            let witness =
+                CircuitWitness::from_rpc(&task_options_copy.block, &task_options_copy.rpc)
+                    .await
+                    .map_err(|e| e.to_string()).unwrap();
+
             tokio::spawn(async move {
                 println!("{}", "=============>1");
-
-                let witness =
-                    CircuitWitness::from_rpc(&task_options_copy.block, &task_options_copy.rpc)
-                        .await
-                        .map_err(|e| e.to_string())?;
 
                 let (config, circuit_proof, aggregation_proof) = crate::match_circuit_params!(
                     witness.gas_used(),
