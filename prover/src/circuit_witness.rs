@@ -68,7 +68,7 @@ impl CircuitWitness {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let url = Http::from_str(rpc_url)?;
         let geth_client = GethClient::new(url);
-        println!("=============>url: {:?}", url);
+        println!("=============>url: {:?}", rpc_url);
         // TODO: add support for `eth_getHeaderByNumber`
         let block = geth_client.get_block_by_number((*block_num).into()).await?;
         println!(
