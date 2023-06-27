@@ -419,6 +419,8 @@ impl SharedState {
             let self_copy = self.clone();
             
             tokio::spawn(async move {
+                println!("{}", "=============>1");
+
                 let witness =
                     CircuitWitness::from_rpc(&task_options_copy.block, &task_options_copy.rpc)
                         .await

@@ -73,8 +73,11 @@ impl CircuitWitness {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let url = Http::from_str(rpc_url)?;
         let geth_client = GethClient::new(url);
+        println!("{}", "=============>a");
         // TODO: add support for `eth_getHeaderByNumber`
         let block = geth_client.get_block_by_number((*block_num).into()).await?;
+        println!("{}", "=============>b");
+
         let circuit_config =
             crate::match_circuit_params!(block.gas_used.as_usize(), CIRCUIT_CONFIG, {
                 return Err(format!(
@@ -83,6 +86,8 @@ impl CircuitWitness {
                 )
                 .into());
             });
+        println!("{}", "=============>c");
+
         let circuit_params = CircuitsParams {
             max_txs: circuit_config.max_txs,
             max_calldata: circuit_config.max_calldata,
@@ -95,7 +100,10 @@ impl CircuitWitness {
             max_keccak_rows: circuit_config.keccak_padding,
         };
         let builder = BuilderClient::new(geth_client, circuit_params).await?;
+        println!("{}", "=============>d");
+
         let (builder, eth_block) = builder.gen_inputs(*block_num).await?;
+        println!("{}", "=============>e");
 
         Ok(Self {
             circuit_config,
