@@ -248,10 +248,10 @@ macro_rules! compute_proof_wrapper {
             { CIRCUIT_CONFIG.max_rws },
             { CIRCUIT_CONFIG.max_copy_rows },
             _,
-        >(&$witness, fixed_rng())?;
+        >(&$witness, fixed_rng()).unwrap();
         let timing = Instant::now().duration_since(timing).as_millis() as u32;
         let (circuit_config, mut circuit_proof, aggregation_proof) =
-            compute_proof(&$shared_state, &$task_options, CIRCUIT_CONFIG, circuit).await?;
+            compute_proof(&$shared_state, &$task_options, CIRCUIT_CONFIG, circuit).await.unwrap();
         circuit_proof.aux.circuit = timing;
         (circuit_config, circuit_proof, aggregation_proof)
     }};
@@ -411,127 +411,122 @@ impl SharedState {
         // instead.
 
         // spawn a task to catch panics
-        let task_result: Result<Result<Proofs, String>, tokio::task::JoinError> = {
+        let task_result: Result<Proofs, String> = {
             let task_options_copy = task_options.clone();
             let self_copy = self.clone();
 
             let witness =
                 CircuitWitness::from_rpc(&task_options_copy.block, &task_options_copy.rpc)
                     .await
-                    .map_err(|e| e.to_string()).unwrap();
+                    .map_err(|e| e.to_string())
+                    .unwrap();
 
-            tokio::spawn(async move {
-                println!("{}", "=============>1");
+            println!("{}", "=============>1");
 
-                let (config, circuit_proof, aggregation_proof) = crate::match_circuit_params!(
-                    witness.gas_used(),
-                    {
-                        match task_options_copy.circuit.as_str() {
-                            "pi" => {
-                                compute_proof_wrapper!(
-                                    self_copy,
-                                    task_options_copy,
-                                    &witness,
-                                    gen_pi_circuit
-                                )
-                            }
-                            "super" => {
-                                compute_proof_wrapper!(
-                                    self_copy,
-                                    task_options_copy,
-                                    &witness,
-                                    gen_super_circuit
-                                )
-                            }
-                            "evm" => {
-                                compute_proof_wrapper!(
-                                    self_copy,
-                                    task_options_copy,
-                                    &witness,
-                                    gen_evm_circuit
-                                )
-                            }
-                            "state" => compute_proof_wrapper!(
+            let (config, circuit_proof, aggregation_proof) = crate::match_circuit_params!(
+                witness.gas_used(),
+                {
+                    match task_options_copy.circuit.as_str() {
+                        "pi" => {
+                            compute_proof_wrapper!(
                                 self_copy,
                                 task_options_copy,
                                 &witness,
-                                gen_state_circuit
-                            ),
-                            "tx" => {
-                                compute_proof_wrapper!(
-                                    self_copy,
-                                    task_options_copy,
-                                    &witness,
-                                    gen_tx_circuit
-                                )
-                            }
-                            "bytecode" => compute_proof_wrapper!(
-                                self_copy,
-                                task_options_copy,
-                                &witness,
-                                gen_bytecode_circuit
-                            ),
-                            "copy" => {
-                                compute_proof_wrapper!(
-                                    self_copy,
-                                    task_options_copy,
-                                    &witness,
-                                    gen_copy_circuit
-                                )
-                            }
-                            "exp" => {
-                                compute_proof_wrapper!(
-                                    self_copy,
-                                    task_options_copy,
-                                    &witness,
-                                    gen_exp_circuit
-                                )
-                            }
-                            "keccak" => compute_proof_wrapper!(
-                                self_copy,
-                                task_options_copy,
-                                &witness,
-                                gen_keccak_circuit
-                            ),
-                            _ => panic!("unknown circuit"),
+                                gen_pi_circuit
+                            )
                         }
-                    },
-                    {
-                        return Err(format!(
-                            "No circuit parameters found for block with gas used={}",
-                            witness.gas_used()
-                        ));
+                        "super" => {
+                            compute_proof_wrapper!(
+                                self_copy,
+                                task_options_copy,
+                                &witness,
+                                gen_super_circuit
+                            )
+                        }
+                        "evm" => {
+                            compute_proof_wrapper!(
+                                self_copy,
+                                task_options_copy,
+                                &witness,
+                                gen_evm_circuit
+                            )
+                        }
+                        "state" => compute_proof_wrapper!(
+                            self_copy,
+                            task_options_copy,
+                            &witness,
+                            gen_state_circuit
+                        ),
+                        "tx" => {
+                            compute_proof_wrapper!(
+                                self_copy,
+                                task_options_copy,
+                                &witness,
+                                gen_tx_circuit
+                            )
+                        }
+                        "bytecode" => compute_proof_wrapper!(
+                            self_copy,
+                            task_options_copy,
+                            &witness,
+                            gen_bytecode_circuit
+                        ),
+                        "copy" => {
+                            compute_proof_wrapper!(
+                                self_copy,
+                                task_options_copy,
+                                &witness,
+                                gen_copy_circuit
+                            )
+                        }
+                        "exp" => {
+                            compute_proof_wrapper!(
+                                self_copy,
+                                task_options_copy,
+                                &witness,
+                                gen_exp_circuit
+                            )
+                        }
+                        "keccak" => compute_proof_wrapper!(
+                            self_copy,
+                            task_options_copy,
+                            &witness,
+                            gen_keccak_circuit
+                        ),
+                        _ => panic!("unknown circuit"),
                     }
-                );
-                let res = Proofs {
-                    config,
-                    circuit: circuit_proof,
-                    aggregation: aggregation_proof,
-                    gas: witness.gas_used(),
-                };
-                Ok(res)
-            })
-            .await
+                },
+                {
+                    return panic!("unknown circuit");
+                }
+            );
+            let res = Proofs {
+                config,
+                circuit: circuit_proof,
+                aggregation: aggregation_proof,
+                gas: witness.gas_used(),
+            };
+            Ok(res)
         };
 
         // convert the JoinError to string - if applicable
-        let task_result: Result<Proofs, String> = match task_result {
-            Err(err) => match err.is_panic() {
-                true => {
-                    let panic = err.into_panic();
+        // let task_result: Result<Proofs, String> = match task_result {
+        //     Err(err) => match err.is_panic() {
+        //         true => {
+        //             let panic = err.into_panic();
 
-                    if let Some(msg) = panic.downcast_ref::<&str>() {
-                        Err(msg.to_string())
-                    } else if let Some(msg) = panic.downcast_ref::<String>() {
-                        Err(msg.to_string())
-                    } else {
-                        Err("unknown panic".to_string())
-                    }
-                }
-                false => Err(err.to_string()),
-            },
-            Ok(val) => val,
-        };
+        //             if let Some(msg) = panic.downcast_ref::<&str>() {
+        //                 Err(msg.to_string())
+        //             } else if let Some(msg) = panic.downcast_ref::<String>() {
+        //                 Err(msg.to_string())
+        //             } else {
+        //                 Err("unknown panic".to_string())
+        //             }
+        //         }
+        //         false => Err(err.to_string()),
+        //     },
+        //     Ok(val) => val,
+        // };
 
         {
             // done, update the queue
