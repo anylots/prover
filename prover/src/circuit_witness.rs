@@ -1,18 +1,13 @@
 use crate::Fr;
-use bus_mapping::circuit_input_builder::BuilderClient;
-use bus_mapping::circuit_input_builder::CircuitsParams;
-use bus_mapping::mock::BlockData;
-use bus_mapping::rpc::GethClient;
-use eth_types::geth_types;
-use eth_types::geth_types::GethData;
-use eth_types::Address;
-use eth_types::ToBigEndian;
-use eth_types::Word;
-use eth_types::H256;
+use bus_mapping::{
+    circuit_input_builder::{BuilderClient, CircuitsParams},
+    mock::BlockData,
+    rpc::GethClient,
+};
+use eth_types::{geth_types, geth_types::GethData, Address, ToBigEndian, Word, H256};
 use ethers_providers::Http;
 use std::str::FromStr;
-use zkevm_circuits::evm_circuit;
-use zkevm_circuits::pi_circuit::PublicData;
+use zkevm_circuits::{evm_circuit, pi_circuit::PublicData};
 use zkevm_common::prover::CircuitConfig;
 
 /// Wrapper struct for circuit witness data.
@@ -73,10 +68,14 @@ impl CircuitWitness {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let url = Http::from_str(rpc_url)?;
         let geth_client = GethClient::new(url);
-        println!("{}", "=============>a");
+        println!("=============>url: {:?}", url);
         // TODO: add support for `eth_getHeaderByNumber`
         let block = geth_client.get_block_by_number((*block_num).into()).await?;
-        println!("{}", "=============>b");
+        println!(
+            "=============>block_txs_len: {:?}",
+            block.transactions.len()
+        );
+        println!("=============>block_hash: {:?}", block.hash);
 
         let circuit_config =
             crate::match_circuit_params!(block.gas_used.as_usize(), CIRCUIT_CONFIG, {
@@ -86,7 +85,9 @@ impl CircuitWitness {
                 )
                 .into());
             });
-        println!("{}", "=============>c");
+        log::info!("Using circuit config: {:#?}", circuit_config);
+
+        println!("=============>circuit_config: {:?}", circuit_config);
 
         let circuit_params = CircuitsParams {
             max_txs: circuit_config.max_txs,
@@ -100,10 +101,10 @@ impl CircuitWitness {
             max_keccak_rows: circuit_config.keccak_padding,
         };
         let builder = BuilderClient::new(geth_client, circuit_params).await?;
-        println!("{}", "=============>d");
+        println!("=============>circuit_params: {:?}", circuit_params);
 
         let (builder, eth_block) = builder.gen_inputs(*block_num).await?;
-        println!("{}", "=============>e");
+        println!("=============>eth_block: {:?}", eth_block);
 
         Ok(Self {
             circuit_config,
